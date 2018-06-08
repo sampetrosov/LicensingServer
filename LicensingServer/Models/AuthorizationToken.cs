@@ -15,32 +15,29 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
+using System.Linq;
 using System.Web;
+using System.Text;
+using LicensingServer.Engine;
 
 namespace LicensingServer.Models
 {
-    public class User
+    public class AuthorizationToken
     {
-        private string _Password;
         [Key]
+        public int TokenID { get; set; }
+        public int ApplicationID { get; set; }
         public int UserID { get; set; }
         [Required]
-        public string Username { get; set; }
+        public string TokenValue { get; set; }
         [Required]
-        public string Password {
-            get { return _Password; }
-            set {
-                _Password = SHA512.Create().ComputeHash(Encoding.ASCII.GetBytes(value)).Select(x=> Convert.ToChar(x).ToString()).Aggregate((x,y)=> x+y);
-            }
+        public DateTime ExpirationDate { get; set; }
+
+        public void GenerateTokenValue()
+        {
+            TokenValue = RijndaelSimple.Encrypt(UserID + ExpirationDate.ToString("MMddyyyy hh:mm:ss"));
         }
-        public string Email { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-        public string State { get; set; }
-        public bool IsAdmin { get; set; } = false;       
+
     }
 }

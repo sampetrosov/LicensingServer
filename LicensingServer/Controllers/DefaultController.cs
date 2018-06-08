@@ -12,11 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using LicensingServer.Attributes;
 using System.Web.Http;
 
 namespace LicensingServer.Controllers
 {
     public class DefaultController : ApiController
     {
+        [CustomizedAuthorization]
+        [HttpGet]
+        public void Index()
+        {
+
+        }
     }
 }

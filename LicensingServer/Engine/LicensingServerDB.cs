@@ -27,6 +27,7 @@ namespace LicensingServer.Engine
         public DbSet<User> Users { get; set; }
         public DbSet<Application> Applications { get; set; }
         public DbSet<ApplicationDetail> ApplicationDetails { get; set; }
+        public DbSet<AuthorizationToken> AuthorizationTokens { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

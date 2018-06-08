@@ -18,6 +18,9 @@ namespace LicensingServer.Controllers
 {
     public class AdminController : ApiController
     {
+        public void Index()
+        {
 
+        }
     }
 }

@@ -18,6 +18,12 @@ namespace LicensingServer.Migrations
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
             //  to avoid creating duplicate seed data.
+            context.Users.AddOrUpdate(new Models.User()
+            {
+                Username="admin",
+                Password="setup",
+                IsAdmin=true,
+            });
         }
     }
 }
