@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using LicensingServer.Engine;
+using LicensingServer.Models;
+using System;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -19,10 +25,12 @@ using System.Web.Http.Controllers;
 
 namespace LicensingServer.Attributes
 {
-    public class CustomizedAuthorizationAttribute: AuthorizeAttribute
+    public class OrdinarUserAuthorizationAttribute : AuthorizeAttribute
     {
-        public override bool AllowMultiple {
-            get {
+        public override bool AllowMultiple
+        {
+            get
+            {
                 return false;
             }
         }
@@ -30,20 +38,66 @@ namespace LicensingServer.Attributes
         public override void OnAuthorization(HttpActionContext actionContext)
         {
             base.OnAuthorization(actionContext);
-
-            var authorizationHeader = actionContext.Request.Headers.Authorization;
+            var tokenValue = actionContext.Request.Headers.Authorization.Parameter;
+            using (LicensingServerDB dbContext = new LicensingServerDB())
+            {
+                var findedTokens = dbContext.AuthorizationTokens.Where(x => x.TokenValue == tokenValue);
+                if (findedTokens.Any())
+                {
+                    AuthorizationToken authorizationToken = findedTokens.OrderByDescending(x => x.ExpirationDate).First();
+                    if (authorizationToken.ExpirationDate < DateTime.Today)
+                    {
+                        actionContext.Response = actionContext.Request.CreateResponse(HttpStatusCode.Forbidden);
+                        return;
+                    }
+                    return;
+                }
+            }
+            actionContext.Response = actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized);
         }
 
         public override Task OnAuthorizationAsync(HttpActionContext actionContext, CancellationToken cancellationToken)
         {
-            return base.OnAuthorizationAsync(actionContext, cancellationToken);
+            TaskFactory taskFactory = new TaskFactory(cancellationToken);
+            return taskFactory.StartNew(async () =>
+            {
+                await base.OnAuthorizationAsync(actionContext, cancellationToken);
+                var tokenValue = actionContext.Request.Headers.Authorization.Parameter;
+                using (LicensingServerDB dbContext = new LicensingServerDB())
+                {
+                    var findedTokens = dbContext.AuthorizationTokens.Where(x => x.TokenValue == tokenValue);
+                    if (findedTokens.Any())
+                    {
+                        AuthorizationToken authorizationToken = findedTokens.OrderByDescending(x => x.ExpirationDate).First();
+                        if (authorizationToken.ExpirationDate < DateTime.Today)
+                        {
+                            actionContext.Response = actionContext.Request.CreateResponse(HttpStatusCode.Forbidden);
+                            return;
+                        }
+                        return;
+                    }
+                }
+                actionContext.Response = actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized);
+            });
         }
 
         protected override bool IsAuthorized(HttpActionContext actionContext)
         {
-            if (!base.IsAuthorized(actionContext))
-                return false;
-            return true;
+            var tokenValue = actionContext.Request.Headers.Authorization.Parameter;
+            using (LicensingServerDB dbContext = new LicensingServerDB())
+            {
+                var findedTokens = dbContext.AuthorizationTokens.Where(x => x.TokenValue == tokenValue);
+                if (findedTokens.Any())
+                {
+                    AuthorizationToken authorizationToken = findedTokens.OrderByDescending(x => x.ExpirationDate).First();
+                    if (authorizationToken.ExpirationDate < DateTime.Today)
+                    {
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -19,11 +19,11 @@ namespace LicensingServer.Controllers
 {
     public class DefaultController : ApiController
     {
-        [CustomizedAuthorization]
+        [OrdinarUserAuthorization]
         [HttpGet]
-        public void Index()
+        public IHttpActionResult Index()
         {
-
+            return Ok("Some where interesting text");
         }
     }
 }

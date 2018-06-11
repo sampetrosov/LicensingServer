@@ -39,7 +39,7 @@ namespace LicensingServer.Controllers
                             AuthorizationToken authorizationToken = new AuthorizationToken
                             {
                                 UserID = user.UserID,
-                                ExpirationDate = DateTime.Now.AddHours(3)
+                                ExpirationDate = DateTime.Today.AddDays(1)
                             };
                             authorizationToken.GenerateTokenValue();
                             authorizationToken = dbContext.AuthorizationTokens.Add(authorizationToken);
@@ -71,7 +71,7 @@ namespace LicensingServer.Controllers
                             AuthorizationToken authorizationToken = new AuthorizationToken
                             {
                                 UserID = user.UserID,
-                                ExpirationDate = DateTime.Now.AddHours(3)
+                                ExpirationDate = DateTime.Today.AddDays(1)
                             };
                             authorizationToken.GenerateTokenValue();
                             authorizationToken = dbContext.AuthorizationTokens.Add(authorizationToken);
